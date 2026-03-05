@@ -6,7 +6,7 @@ from datetime import datetime
 NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
 DATABASE_ID = os.environ.get('NOTION_DATABASE_ID')
 
-# 최상위 경로에 저장
+# 최상위 경로에 저장 (본사 로비)
 SAVE_PATH = "./" 
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
@@ -38,7 +38,7 @@ def sync_notion_to_blog():
 
     post_links_html = ""
 
-    # 🚩 1. 잃어버렸던 상단 메뉴바(Navigation) 복구!
+    # 메뉴바
     nav_bar_html = '''
     <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
         <div class="container px-4 px-lg-5">
@@ -50,28 +50,26 @@ def sync_notion_to_blog():
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ms-auto py-4 py-lg-0">
                     <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>
                 </ul>
             </div>
         </div>
     </nav>
     '''
 
-    # 🚩 2. 원래 테마의 폰트와 디자인 파일(CSS) 연결 복구
+    # 🚩 핵심 수정: CSS 옷을 'dist/' 창고에서 가져오도록 지정!
     head_html = '''
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
-    <link href="css/styles.css" rel="stylesheet" />
+    <link href="dist/css/styles.css" rel="stylesheet" />
     '''
     
-    # 🚩 3. 메뉴바를 움직이게 하는 자바스크립트 복구
+    # 🚩 자바스크립트 스크립트도 'dist/' 창고에서 가져오도록 지정!
     footer_html = '''
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/scripts.js"></script>
+    <script src="dist/js/scripts.js"></script>
     '''
 
     for post in posts:
@@ -88,7 +86,6 @@ def sync_notion_to_blog():
         safe_title = title.replace(' ', '-').replace('/', '-')
         file_name = f"{post_date}-{safe_title}.html"
         
-        # 메인 화면에 들어갈 깔끔한 글 목록 조립 (원래 테마 디자인)
         post_links_html += f'''
         <div class="post-preview">
             <a href="{file_name}">
@@ -116,7 +113,7 @@ def sync_notion_to_blog():
                 if b64_img:
                     body_html += f'<img src="{b64_img}" style="max-width: 100%; height: auto; border-radius: 5px; margin: 30px 0;">\n'
 
-        # 개별 포스트 페이지 생성
+        # 🚩 배경 이미지도 'dist/' 에서 가져오기
         post_page = f'''
         <!DOCTYPE html>
         <html lang="ko">
@@ -126,7 +123,7 @@ def sync_notion_to_blog():
         </head>
         <body>
             {nav_bar_html}
-            <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <header class="masthead" style="background-image: url('dist/assets/img/post-bg.jpg')">
                 <div class="container position-relative px-4 px-lg-5">
                     <div class="row gx-4 gx-lg-5 justify-content-center">
                         <div class="col-md-10 col-lg-8 col-xl-7">
@@ -154,7 +151,7 @@ def sync_notion_to_blog():
         with open(os.path.join(SAVE_PATH, file_name), "w", encoding="utf-8") as f:
             f.write(post_page)
 
-    # 진짜 메인 화면(index.html) 생성
+    # 🚩 메인 화면 배경 이미지도 'dist/' 에서 가져오기
     index_page = f'''
     <!DOCTYPE html>
     <html lang="ko">
@@ -164,7 +161,7 @@ def sync_notion_to_blog():
     </head>
     <body>
         {nav_bar_html}
-        <header class="masthead" style="background-image: url('assets/img/home-bg.jpg')">
+        <header class="masthead" style="background-image: url('dist/assets/img/home-bg.jpg')">
             <div class="container position-relative px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
