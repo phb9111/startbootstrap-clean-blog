@@ -54,7 +54,7 @@ def sync_notion_to_blog():
 
         # 4. 파일명 생성 (예: 2026-03-05-제목.html)
         safe_title = title.replace(' ', '-').replace('/', '-')
-        file_name = f"{post_date}-{safe_title}.html"
+        file_name = f"{post_date}-{safe_title}.md"
         
         print(f"📝 '{file_name}' 생성 중...")
 
@@ -82,3 +82,4 @@ def sync_notion_to_blog():
 
 if __name__ == "__main__":
     sync_notion_to_blog()
+
