@@ -2,18 +2,22 @@ name: Notion to Blog Sync
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # 15분마다 실행 (UTC 기준)
-  workflow_dispatch: # 수동으로도 버튼 눌러서 실행 가능하게 함
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+# 🚩 1. 지시서 자체에 '쓰기 권한'을 강제로 명시합니다 (권한 오류 원천 차단)
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -26,19 +30,8 @@ jobs:
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: python 12.py
 
-      - name: Commit and Push
-        run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
-          
-          # 1. 서버의 최신 변경사항을 가져와서 합칩니다 (충돌 방지 1단계)
-          git pull origin master --rebase
-          
-          # 2. 모든 변경사항을 추가합니다 (_posts 폴더 등)
-          git add .
-          
-          # 3. 변경 사항이 있을 때만 커밋을 진행합니다
-          git commit -m "Auto-update from Notion" || echo "No changes to commit"
-          
-          # 4. 강제 푸시(--force)를 사용하여 서버의 상태를 로봇의 최신 장부로 덮어씁니다
-          git push origin master --force
+      # 🚩 2. 골치 아픈 git 수동 명령어 대신 '자동 커밋 전문 봇'을 고용합니다
+      - name: Auto Commit and Push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-update from Notion"
