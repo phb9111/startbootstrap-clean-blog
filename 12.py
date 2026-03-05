@@ -6,8 +6,8 @@ from datetime import datetime
 NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
 DATABASE_ID = os.environ.get('NOTION_DATABASE_ID')
 
-# 🚩 핵심: 저장 위치를 매니저님의 진짜 메인 주소인 'dist' 폴더로 지정합니다!
-SAVE_PATH = "dist" 
+# 최상위 경로에 저장
+SAVE_PATH = "./" 
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
@@ -36,10 +36,45 @@ def sync_notion_to_blog():
     res = requests.post(query_url, headers=headers, json={"filter": {"property": "발행", "checkbox": {"equals": True}}})
     posts = res.json().get("results", [])
 
-    post_links_html = "" # 메인 화면(index.html)에 띄울 글 목록
+    post_links_html = ""
+
+    # 🚩 1. 잃어버렸던 상단 메뉴바(Navigation) 복구!
+    nav_bar_html = '''
+    <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="index.html">퀀트 블로그</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    '''
+
+    # 🚩 2. 원래 테마의 폰트와 디자인 파일(CSS) 연결 복구
+    head_html = '''
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+    <link href="css/styles.css" rel="stylesheet" />
+    '''
+    
+    # 🚩 3. 메뉴바를 움직이게 하는 자바스크립트 복구
+    footer_html = '''
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/scripts.js"></script>
+    '''
 
     for post in posts:
-        # 제목 및 날짜 추출
         title_list = post["properties"].get("제목", {}).get("title", [])
         title = title_list[0]["plain_text"] if title_list else "untitled"
         
@@ -51,20 +86,20 @@ def sync_notion_to_blog():
         category = cats[0] if cats else "Finance"
 
         safe_title = title.replace(' ', '-').replace('/', '-')
-        file_name = f"{post_date}-{safe_title}.html" # 🚩 다시 html 파일로 만듭니다
+        file_name = f"{post_date}-{safe_title}.html"
         
-        # 1. 메인 화면에 들어갈 '글 목록' 블록 조립
+        # 메인 화면에 들어갈 깔끔한 글 목록 조립 (원래 테마 디자인)
         post_links_html += f'''
-        <div class="post-preview" style="margin-bottom: 30px; padding-bottom: 30px; border-bottom: 1px solid #eee;">
-            <a href="{file_name}" style="text-decoration: none; color: black;">
-                <h2 class="post-title" style="margin-bottom: 5px;">{title}</h2>
-                <h4 class="post-subtitle" style="font-weight: normal; color: gray; margin-top: 0;">{category}</h4>
+        <div class="post-preview">
+            <a href="{file_name}">
+                <h2 class="post-title">{title}</h2>
+                <h3 class="post-subtitle">{category}</h3>
             </a>
-            <p class="post-meta" style="color: gray; font-size: 0.9em;">작성일: {post_date}</p>
+            <p class="post-meta">작성일: {post_date}</p>
         </div>
+        <hr class="my-4" />
         '''
 
-        # 본문 내용 추출
         blocks_url = f"https://api.notion.com/v1/blocks/{post['id']}/children"
         blocks = requests.get(blocks_url, headers=headers).json().get("results", [])
         
@@ -73,57 +108,82 @@ def sync_notion_to_blog():
             if block["type"] == "paragraph":
                 text = "".join([t["plain_text"] for t in block["paragraph"].get("rich_text", [])])
                 if text.strip():
-                    body_html += f"<p style='line-height: 1.8; text-align: left;'>{text}</p>\n"
+                    body_html += f"<p>{text}</p>\n"
             elif block["type"] == "image":
                 img_data = block["image"]
                 img_url = img_data["file"]["url"] if "file" in img_data else img_data["external"]["url"]
                 b64_img = get_base64_image(img_url)
                 if b64_img:
-                    body_html += f'<div style="text-align: center; margin: 30px 0;"><img src="{b64_img}" style="max-width: 100%; border-radius: 5px;"></div>\n'
+                    body_html += f'<img src="{b64_img}" style="max-width: 100%; height: auto; border-radius: 5px; margin: 30px 0;">\n'
 
-        # 2. 개별 글 페이지(HTML) 생성 및 저장
+        # 개별 포스트 페이지 생성
         post_page = f'''
         <!DOCTYPE html>
         <html lang="ko">
         <head>
-            <meta charset="utf-8" />
             <title>{title}</title>
-            <link href="css/styles.css" rel="stylesheet" />
+            {head_html}
         </head>
         <body>
-            <header class="masthead" style="background-image: url('assets/img/post-bg.jpg'); padding: 80px 0; text-align: center; background-color: #0085A1; color: white;">
-                <h1 style="color: white; font-size: 2.5em; font-weight: bold; margin-bottom: 10px;">{title}</h1>
-                <span style="font-size: 1.2em;">{post_date}</span>
-            </header>
-            <div class="container" style="max-width: 800px; margin: 50px auto; padding: 0 20px;">
-                {body_html}
-                <div style="margin-top: 50px; text-align: center;">
-                    <a href="index.html" style="padding: 10px 20px; background-color: #0085A1; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">← 메인으로 돌아가기</a>
+            {nav_bar_html}
+            <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+                <div class="container position-relative px-4 px-lg-5">
+                    <div class="row gx-4 gx-lg-5 justify-content-center">
+                        <div class="col-md-10 col-lg-8 col-xl-7">
+                            <div class="post-heading">
+                                <h1>{title}</h1>
+                                <span class="meta">작성일: {post_date}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </header>
+            <article class="mb-4">
+                <div class="container px-4 px-lg-5">
+                    <div class="row gx-4 gx-lg-5 justify-content-center">
+                        <div class="col-md-10 col-lg-8 col-xl-7">
+                            {body_html}
+                        </div>
+                    </div>
+                </div>
+            </article>
+            {footer_html}
         </body>
         </html>
         '''
         with open(os.path.join(SAVE_PATH, file_name), "w", encoding="utf-8") as f:
             f.write(post_page)
 
-    # 3. 진짜 메인 화면(dist/index.html)을 덮어쓰기
+    # 진짜 메인 화면(index.html) 생성
     index_page = f'''
     <!DOCTYPE html>
     <html lang="ko">
     <head>
-        <meta charset="utf-8" />
-        <title>박형빈 매니저님의 블로그</title>
-        <link href="css/styles.css" rel="stylesheet" />
+        <title>자동화 퀀트 블로그</title>
+        {head_html}
     </head>
     <body>
-        <header class="masthead" style="background-image: url('assets/img/home-bg.jpg'); padding: 100px 0; text-align: center; background-color: #0085A1; color: white;">
-            <h1 style="color: white; font-size: 3em; font-weight: bold; margin-bottom: 10px;">자동화 퀀트 블로그</h1>
-            <span style="font-size: 1.2em;">노션에 작성하면 15분마다 자동으로 발행됩니다</span>
+        {nav_bar_html}
+        <header class="masthead" style="background-image: url('assets/img/home-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="site-heading">
+                            <h1>자동화 퀀트 블로그</h1>
+                            <span class="subheading">노션에 작성하면 15분마다 자동으로 발행됩니다</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </header>
-        <div class="container" style="max-width: 800px; margin: 50px auto; padding: 0 20px;">
-            {post_links_html}
+        <div class="container px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-md-10 col-lg-8 col-xl-7">
+                    {post_links_html}
+                </div>
+            </div>
         </div>
+        {footer_html}
     </body>
     </html>
     '''
