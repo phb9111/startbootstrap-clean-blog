@@ -5,7 +5,7 @@ on:
     - cron: '*/15 * * * *'
   workflow_dispatch:
 
-# 🚩 1. 지시서 자체에 '쓰기 권한'을 강제로 명시합니다 (권한 오류 원천 차단)
+# 🚩 지시서 자체에 '쓰기 권한'을 강제로 명시합니다
 permissions:
   contents: write
 
@@ -30,7 +30,7 @@ jobs:
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: python 12.py
 
-      # 🚩 2. 골치 아픈 git 수동 명령어 대신 '자동 커밋 전문 봇'을 고용합니다
+      # 🚩 골치 아픈 git 수동 명령어 대신 '자동 커밋 전문 봇'을 고용합니다
       - name: Auto Commit and Push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
