@@ -2,12 +2,18 @@ import requests
 import base64
 import os
 import glob
+import shutil
 from datetime import datetime
 
 NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
 DATABASE_ID = os.environ.get('NOTION_DATABASE_ID')
 
 SAVE_PATH = "./" 
+POSTS_DIR = "posts" # 🚩 게시글 저장 전용 폴더명
+
+# 🚩 posts 폴더가 없으면 생성합니다.
+os.makedirs(os.path.join(SAVE_PATH, POSTS_DIR), exist_ok=True)
+
 headers = {
     "Authorization": f"Bearer {NOTION_TOKEN}",
     "Content-Type": "application/json",
@@ -34,13 +40,12 @@ def get_base64_image(url):
 def sync_notion_to_blog():
     if not NOTION_TOKEN or not DATABASE_ID: return
 
-    # 기존 포스트 삭제 (중복 방지)
-    old_files = glob.glob(os.path.join(SAVE_PATH, "202*-*.html"))
+    # 🚩 1. [자동 장부 정리] posts 폴더 안의 기존 HTML 파일들만 싹 비웁니다.
+    old_files = glob.glob(os.path.join(SAVE_PATH, POSTS_DIR, "*.html"))
     for f in old_files:
         try: os.remove(f)
         except: pass
 
-    # 노션 데이터 가져오기
     query_url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
     query_data = {
         "filter": {"property": "발행", "checkbox": {"equals": True}},
@@ -49,20 +54,14 @@ def sync_notion_to_blog():
     res = requests.post(query_url, headers=headers, json=query_data)
     all_posts = res.json().get("results", [])
 
-    cache_control = '''
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    '''
+    cache_control = '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">'
 
-    # 🚩 [복구] 모바일용 navbar-toggler 버튼 추가
     nav_bar_html = f'''
     <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
         <div class="container px-4 px-lg-5">
             <a class="navbar-brand" href="{BASE_URL}/index.html?v={VERSION}">{BLOG_TITLE}</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                Menu
-                <i class="fas fa-bars"></i>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive">
+                Menu <i class="fas fa-bars"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ms-auto py-4 py-lg-0">
@@ -75,8 +74,7 @@ def sync_notion_to_blog():
     '''
 
     head_html = f'''
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     {cache_control}
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
@@ -85,15 +83,11 @@ def sync_notion_to_blog():
         .post-thumbnail {{ width: 120px; height: 80px; object-fit: cover; border-radius: 6px; margin-left: 15px; }}
         .post-item {{ display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f2f2f2; }}
         .signature {{ border-top: 1px solid #ddd; margin-top: 60px; padding-top: 20px; color: #777; font-size: 0.9rem; }}
-        /* 모바일에서 버튼이 잘 보이도록 보정 */
         .navbar-toggler {{ padding: 0.5rem; font-size: 0.8rem; }}
     </style>
     '''
     
-    footer_html = f'''
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{BASE_URL}/dist/js/scripts.js?v={VERSION}"></script>
-    '''
+    footer_html = f'''<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script><script src="{BASE_URL}/dist/js/scripts.js?v={VERSION}"></script>'''
 
     main_posts_html = ""
     archive_posts_html = ""
@@ -125,10 +119,11 @@ def sync_notion_to_blog():
                     if not first_image_url: first_image_url = b64_img
                     body_html += f'<img src="{b64_img}" style="max-width: 100%; border-radius: 8px; margin: 25px 0;">\n'
 
+        # 🚩 링크 경로를 posts/ 폴더 내부로 수정!
         post_item_html = f'''
         <div class="post-item">
             <div style="flex: 1;">
-                <a href="{BASE_URL}/{file_name}?v={VERSION}" style="text-decoration: none; color: #333;">
+                <a href="{BASE_URL}/{POSTS_DIR}/{file_name}?v={VERSION}" style="text-decoration: none; color: #333;">
                     <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 5px;">{title}</h2>
                 </a>
                 <p style="font-size: 0.8rem; color: #888;">{post_date} | {category}</p>
@@ -139,8 +134,8 @@ def sync_notion_to_blog():
         archive_posts_html += post_item_html
         if idx < 5: main_posts_html += post_item_html
 
-        # 개별 페이지
-        with open(os.path.join(SAVE_PATH, file_name), "w", encoding="utf-8") as f:
+        # 개별 페이지 (목록으로 버튼 -> archive.html 연결)
+        with open(os.path.join(SAVE_PATH, POSTS_DIR, file_name), "w", encoding="utf-8") as f:
             f.write(f'''
             <!DOCTYPE html>
             <html lang="ko">
@@ -155,14 +150,14 @@ def sync_notion_to_blog():
                 <article class="mb-4"><div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
                     {body_html}
                     <div class="signature"><p>작성자 : <b>{AUTHOR_NAME}</b></p></div>
-                    <div class="d-flex justify-content-end mt-5"><a class="btn btn-primary text-uppercase" href="{BASE_URL}/index.html?v={VERSION}">← 목록으로</a></div>
+                    <div class="d-flex justify-content-end mt-5"><a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html?v={VERSION}">← 목록으로 돌아가기</a></div>
                 </div></div></div></article>
                 {footer_html}
             </body>
             </html>
             ''')
 
-    # 아카이브 페이지
+    # 아카이브 페이지 생성
     with open(os.path.join(SAVE_PATH, "archive.html"), "w", encoding="utf-8") as f:
         f.write(f'''
         <!DOCTYPE html>
@@ -181,7 +176,7 @@ def sync_notion_to_blog():
         </html>
         ''')
 
-    # 메인 페이지
+    # 메인 페이지 생성
     with open(os.path.join(SAVE_PATH, "index.html"), "w", encoding="utf-8") as f:
         f.write(f'''
         <!DOCTYPE html>
