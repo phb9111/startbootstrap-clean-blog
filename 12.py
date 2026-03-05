@@ -16,7 +16,7 @@ headers = {
     "Notion-Version": "2022-06-28"
 }
 
-# 설정 정보
+# 🚩 브랜딩 설정
 BLOG_TITLE = "Hyungbin's LAB"
 AUTHOR_NAME = "Hyungbin"
 BASE_URL = "/startbootstrap-clean-blog"
@@ -29,15 +29,13 @@ def get_base64_image(url):
             content_type = res.headers.get('content-type', 'image/jpeg')
             encoded = base64.b64encode(res.content).decode("utf-8")
             return f"data:{content_type};base64,{encoded}"
-    except Exception:
-        pass
+    except Exception: pass
     return None
 
 def sync_notion_to_blog():
-    if not NOTION_TOKEN or not DATABASE_ID:
-        return
+    if not NOTION_TOKEN or not DATABASE_ID: return
 
-    # 🚩 전체 데이터 가져오기 (최신순 정렬)
+    # 모든 발행 글 가져오기 (최신순)
     query_url = f"https://api.notion.com/v1/databases/{DATABASE_ID}/query"
     query_data = {
         "filter": {"property": "발행", "checkbox": {"equals": True}},
@@ -46,7 +44,6 @@ def sync_notion_to_blog():
     res = requests.post(query_url, headers=headers, json=query_data)
     all_posts = res.json().get("results", [])
 
-    # 메뉴바 (Archive 링크 추가)
     nav_bar_html = f'''
     <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
         <div class="container px-4 px-lg-5">
@@ -69,7 +66,7 @@ def sync_notion_to_blog():
     <link href="{BASE_URL}/dist/css/styles.css" rel="stylesheet" />
     <style>
         .post-thumbnail {{ width: 120px; height: 80px; object-fit: cover; border-radius: 6px; margin-left: 15px; }}
-        .post-item {{ display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f2f2f2; }}
+        .post-item {{ display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f2f2f2; }}
         .signature {{ border-top: 1px solid #ddd; margin-top: 60px; padding-top: 20px; color: #777; }}
     </style>
     '''
@@ -79,19 +76,20 @@ def sync_notion_to_blog():
     <script src="{BASE_URL}/dist/js/scripts.js"></script>
     '''
 
-    main_posts_html = "" # 메인 10개용
-    archive_posts_html = "" # 전체 리스트용
+    main_posts_html = ""
+    archive_posts_html = ""
 
     for idx, post in enumerate(all_posts):
-        title = post["properties"].get("제목", {}).get("title", [{}])[0].get("plain_text", "Untitled")
-        date_prop = post["properties"].get("날짜", {}).get("date", {})
-        post_date = date_prop["start"][:10] if date_prop and date_prop.get("start") else datetime.now().strftime("%Y-%m-%d")
-        category = post["properties"].get("카테고리", {}).get("multi_select", [{}])[0].get("name", "Analysis")
+        props = post.get("properties", {})
+        title = props.get("제목", {}).get("title", [{}])[0].get("plain_text", "Untitled")
+        date_val = props.get("날짜", {}).get("date", {})
+        post_date = date_val.get("start", "")[:10] if date_val else datetime.now().strftime("%Y-%m-%d")
+        cat_list = props.get("카테고리", {}).get("multi_select", [])
+        category = cat_list[0].get("name", "Analysis") if cat_list else "Analysis"
 
         safe_title = title.replace(' ', '-').replace('/', '-')
         file_name = f"{post_date}-{safe_title}.html"
         
-        # 썸네일 및 본문 추출 (최적화를 위해 첫 이미지만 확인)
         blocks_url = f"https://api.notion.com/v1/blocks/{post['id']}/children"
         blocks = requests.get(blocks_url, headers=headers).json().get("results", [])
         
@@ -99,16 +97,17 @@ def sync_notion_to_blog():
         first_image_url = None
         for block in blocks:
             if block["type"] == "paragraph":
-                text = "".join([t["plain_text"] for t in block["paragraph"].get("rich_text", [])])
+                rich_text = block["paragraph"].get("rich_text", [])
+                text = "".join([t.get("plain_text", "") for t in rich_text])
                 if text.strip(): body_html += f"<p>{text}</p>\n"
             elif block["type"] == "image":
-                img_url = block["image"]["file"]["url"] if "file" in block["image"] else block["image"]["external"]["url"]
+                img_data = block["image"]
+                img_url = img_data["file"]["url"] if "file" in img_data else img_data["external"]["url"]
                 b64_img = get_base64_image(img_url)
                 if b64_img:
                     if not first_image_url: first_image_url = b64_img
                     body_html += f'<img src="{b64_img}" style="max-width: 100%; border-radius: 8px; margin: 25px 0;">\n'
 
-        # 공통 아이템 구성
         thumb_tag = f'<img src="{first_image_url}" class="post-thumbnail">' if first_image_url else ''
         post_item_html = f'''
         <div class="post-item">
@@ -122,14 +121,11 @@ def sync_notion_to_blog():
         </div>
         '''
 
-        # 아카이브 리스트에는 무조건 추가
         archive_posts_html += post_item_html
-        
-        # 메인 리스트에는 상위 10개만 추가
-        if idx < 10:
+        # 🚩 메인 화면엔 5개만 노출
+        if idx < 5:
             main_posts_html += post_item_html
 
-        # 개별 포스트 페이지 생성
         post_page = f'''
         <!DOCTYPE html>
         <html lang="ko">
@@ -153,7 +149,7 @@ def sync_notion_to_blog():
         with open(os.path.join(SAVE_PATH, file_name), "w", encoding="utf-8") as f:
             f.write(post_page)
 
-    # 🚩 Archive 페이지 생성
+    # Archive 페이지 생성
     archive_page = f'''
     <!DOCTYPE html>
     <html lang="ko">
@@ -162,7 +158,7 @@ def sync_notion_to_blog():
         {nav_bar_html}
         <header class="masthead" style="background-image: url('{BASE_URL}/dist/assets/img/about-bg.jpg')">
             <div class="container position-relative px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
-                <div class="site-heading"><h1>Archive</h1><span class="subheading">Archive</span></div>
+                <div class="site-heading"><h1>Archive</h1><span class="subheading">LAB Records</span></div>
             </div></div></div>
         </header>
         <div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">{archive_posts_html}</div></div></div>
@@ -173,7 +169,7 @@ def sync_notion_to_blog():
     with open(os.path.join(SAVE_PATH, "archive.html"), "w", encoding="utf-8") as f:
         f.write(archive_page)
 
-    # 메인 페이지 생성
+    # 🚩 메인 페이지 (Older Posts 버튼 부활)
     index_page = f'''
     <!DOCTYPE html>
     <html lang="ko">
@@ -182,10 +178,19 @@ def sync_notion_to_blog():
         {nav_bar_html}
         <header class="masthead" style="background-image: url('{BASE_URL}/dist/assets/img/home-bg.jpg')">
             <div class="container position-relative px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
-                <div class="site-heading"><h1>{BLOG_TITLE}</h1><span class="subheading">Quantitative Finance & Automation Archive</span></div>
+                <div class="site-heading"><h1>{BLOG_TITLE}</h1><span class="subheading">즐거운 나의 집</span></div>
             </div></div></div>
         </header>
-        <div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">{main_posts_html}</div></div></div>
+        <div class="container px-4 px-lg-5">
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8">
+                    {main_posts_html}
+                    <div class="d-flex justify-content-end mb-4" style="margin-top: 30px;">
+                        <a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html">Older Posts →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
         {footer_html}
     </body>
     </html>
