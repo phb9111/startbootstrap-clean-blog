@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
-    <link href="/startbootstrap-clean-blog/dist/css/styles.css?v=20260306044727" rel="stylesheet" />
+    <link href="/startbootstrap-clean-blog/dist/css/styles.css?v=20260306045214" rel="stylesheet" />
     <style>
         .post-thumbnail { width: 120px; height: 80px; object-fit: cover; border-radius: 6px; margin-left: 15px; }
         .post-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f2f2f2; transition: opacity 0.3s ease; }
@@ -19,23 +19,22 @@
         .category-btn { border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
         .category-btn:hover, .category-btn.active { background: #0085A1; color: white; }
         
-        /* 🚩 쿠스디스 UI 강제 확장 CSS (스크롤 제거 및 시원한 높이 확보) */
-        #cusdis_thread { margin-top: 50px; border-top: 1px solid #ddd; padding-top: 30px; width: 100%; min-height: 350px; }
-        #cusdis_thread iframe { width: 100% !important; min-height: 350px !important; border: none !important; overflow: hidden !important; }
+        /* Giscus UI 래퍼 스타일 */
+        .giscus-container { margin-top: 60px; border-top: 1px solid #ddd; padding-top: 40px; width: 100%; }
     </style>
     </head>
             <body>
                 
     <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
         <div class="container px-4 px-lg-5">
-            <a class="navbar-brand" href="/startbootstrap-clean-blog/index.html?v=20260306044727">Jungle Juice Lab</a>
+            <a class="navbar-brand" href="/startbootstrap-clean-blog/index.html?v=20260306045214">Jungle Juice Lab</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive">
                 Menu <i class="fas fa-bars"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ms-auto py-4 py-lg-0">
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/startbootstrap-clean-blog/index.html?v=20260306044727">Home</a></li>
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/startbootstrap-clean-blog/archive.html?v=20260306044727">Archive</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/startbootstrap-clean-blog/index.html?v=20260306045214">Home</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/startbootstrap-clean-blog/archive.html?v=20260306045214">Archive</a></li>
                 </ul>
             </div>
         </div>
@@ -55,23 +54,32 @@
                     
                     <div class="post-nav">
                         <div></div>
-                        <div><a href="/startbootstrap-clean-blog/posts/2026-03-04-3번게시글(수정됨).html?v=20260306044727" style="text-align:right;">다음글: →<br>3번게시글(수정됨)</a></div>
+                        <div><a href="/startbootstrap-clean-blog/posts/2026-03-04-3번게시글(수정됨).html?v=20260306045214" style="text-align:right;">다음글: →<br>3번게시글(수정됨)</a></div>
                     </div>
                     
                     
-        <div id="cusdis_thread"
-          data-host="https://cusdis.com"
-          data-app-id="cb1646c0-c107-4fd9-91d4-02d43e904510"
-          data-page-id="첫-게시글"
-          data-page-url="https://phb9111.github.io/startbootstrap-clean-blog/posts/2026-03-03-첫-게시글.html"
-          data-page-title="첫 게시글"
-        ></div>
-        <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
+        <div class="giscus-container">
+            <script src="https://giscus.app/client.js"
+                data-repo="phb9111/startbootstrap-clean-blog"
+                data-repo-id="R_kgDORez65Q"
+                data-category="Announcements"
+                data-category-id="DIC_kwDORez65c4C3yba"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="1"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="light"
+                data-lang="ko"
+                crossorigin="anonymous"
+                async>
+            </script>
+        </div>
         
 
-                    <div class="d-flex justify-content-center mt-5"><a class="btn btn-primary text-uppercase" href="/startbootstrap-clean-blog/archive.html?v=20260306044727">목록으로 돌아가기</a></div>
+                    <div class="d-flex justify-content-center mt-5"><a class="btn btn-primary text-uppercase" href="/startbootstrap-clean-blog/archive.html?v=20260306045214">목록으로 돌아가기</a></div>
                 </div></div></div></article>
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script><script src="/startbootstrap-clean-blog/dist/js/scripts.js?v=20260306044727"></script>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script><script src="/startbootstrap-clean-blog/dist/js/scripts.js?v=20260306045214"></script>
             </body>
             </html>
             
