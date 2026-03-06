@@ -1,3 +1,4 @@
+
 import requests
 import base64
 import os
@@ -19,10 +20,9 @@ headers = {
     "Notion-Version": "2022-06-28"
 }
 
-# 설정 정보 (정글쥬스 브랜딩 적용)
 BLOG_TITLE = "Jungle Juice Lab"
 AUTHOR_NAME = "정글쥬스"
-SLOGAN = "자본시장이라는 정글, 기업의 실체를 털어 상큼한 팩트만 짜냅니다."
+SLOGAN = "새로운 가치를 만들고자 합니다."
 BASE_URL = "/startbootstrap-clean-blog"
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -100,8 +100,9 @@ def sync_notion_to_blog():
         .category-btn {{ border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }}
         .category-btn:hover, .category-btn.active {{ background: #0085A1; color: white; }}
         
-        /* 쿠스디스 댓글창 여백 정리 */
-        #cusdis_thread {{ margin-top: 50px; border-top: 1px solid #ddd; padding-top: 30px; }}
+        /* 🚩 쿠스디스 UI 강제 확장 CSS (스크롤 제거 및 시원한 높이 확보) */
+        #cusdis_thread {{ margin-top: 50px; border-top: 1px solid #ddd; padding-top: 30px; width: 100%; min-height: 350px; }}
+        #cusdis_thread iframe {{ width: 100% !important; min-height: 350px !important; border: none !important; overflow: hidden !important; }}
     </style>
     '''
     
@@ -168,7 +169,6 @@ def sync_notion_to_blog():
             newer_safe = newer_title.replace(' ', '-').replace('/', '-')
             next_post_html = f'<a href="{BASE_URL}/{POSTS_DIR}/{newer_date}-{newer_safe}.html?v={VERSION}" style="text-align:right;">다음글: →<br>{newer_title}</a>'
 
-        # 🚩 [Cusdis 스크립트 주입] 게스트 100% 허용, 초경량 댓글창
         cusdis_html = f'''
         <div id="cusdis_thread"
           data-host="https://cusdis.com"
