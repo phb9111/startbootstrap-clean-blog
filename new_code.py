@@ -23,8 +23,11 @@ headers = {
 BLOG_TITLE = "Jungle Juice Lab"
 AUTHOR_NAME = "정글쥬스"
 SLOGAN = "새로운 가치를 만들고자 합니다."
-BASE_URL = "/startbootstrap-clean-blog"
+BASE_URL = ""
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
+
+# 🚩 [검색엔진 SEO 설정]
+GITHUB_DOMAIN = "https://junglejuice.kr"  # 🚩 2. 방금 산 멋진 새 간판 주소를 넣어줍니다.
 
 # 🚩 [Giscus 댓글 설정] giscus.app 에서 발급받은 두 개의 ID를 여기에 넣어주세요!
 GISCUS_REPO = "phb9111/startbootstrap-clean-blog"
