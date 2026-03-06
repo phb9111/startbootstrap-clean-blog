@@ -1,4 +1,3 @@
-
 import requests
 import base64
 import os
@@ -20,14 +19,18 @@ headers = {
     "Notion-Version": "2022-06-28"
 }
 
+# 설정 정보
 BLOG_TITLE = "Jungle Juice Lab"
 AUTHOR_NAME = "정글쥬스"
 SLOGAN = "새로운 가치를 만들고자 합니다."
 BASE_URL = "/startbootstrap-clean-blog"
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 
-# 🚩 [쿠스디스 댓글 설정] 발급받은 data-app-id 값을 여기에 넣어주세요!
-CUSDIS_APP_ID = "cb1646c0-c107-4fd9-91d4-02d43e904510"
+# 🚩 [Giscus 댓글 설정] giscus.app 에서 발급받은 두 개의 ID를 여기에 넣어주세요!
+GISCUS_REPO = "phb9111/startbootstrap-clean-blog"
+GISCUS_REPO_ID = "R_kgDORez65Q"
+GISCUS_CATEGORY = "Announcements" 
+GISCUS_CATEGORY_ID = "DIC_kwDORez65c4C3yba"
 
 def get_base64_image(url):
     try:
@@ -100,9 +103,8 @@ def sync_notion_to_blog():
         .category-btn {{ border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }}
         .category-btn:hover, .category-btn.active {{ background: #0085A1; color: white; }}
         
-        /* 🚩 쿠스디스 UI 강제 확장 CSS (스크롤 제거 및 시원한 높이 확보) */
-        #cusdis_thread {{ margin-top: 50px; border-top: 1px solid #ddd; padding-top: 30px; width: 100%; min-height: 350px; }}
-        #cusdis_thread iframe {{ width: 100% !important; min-height: 350px !important; border: none !important; overflow: hidden !important; }}
+        /* Giscus UI 래퍼 스타일 */
+        .giscus-container {{ margin-top: 60px; border-top: 1px solid #ddd; padding-top: 40px; width: 100%; }}
     </style>
     '''
     
@@ -169,15 +171,25 @@ def sync_notion_to_blog():
             newer_safe = newer_title.replace(' ', '-').replace('/', '-')
             next_post_html = f'<a href="{BASE_URL}/{POSTS_DIR}/{newer_date}-{newer_safe}.html?v={VERSION}" style="text-align:right;">다음글: →<br>{newer_title}</a>'
 
-        cusdis_html = f'''
-        <div id="cusdis_thread"
-          data-host="https://cusdis.com"
-          data-app-id="{CUSDIS_APP_ID}"
-          data-page-id="{safe_title}"
-          data-page-url="https://phb9111.github.io{BASE_URL}/{POSTS_DIR}/{file_name}"
-          data-page-title="{title}"
-        ></div>
-        <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
+        # 🚩 [Giscus 스크립트 주입] 세련된 디자인과 리액션 기능 추가
+        giscus_html = f'''
+        <div class="giscus-container">
+            <script src="https://giscus.app/client.js"
+                data-repo="{GISCUS_REPO}"
+                data-repo-id="{GISCUS_REPO_ID}"
+                data-category="{GISCUS_CATEGORY}"
+                data-category-id="{GISCUS_CATEGORY_ID}"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="1"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="light"
+                data-lang="ko"
+                crossorigin="anonymous"
+                async>
+            </script>
+        </div>
         '''
 
         with open(os.path.join(SAVE_PATH, POSTS_DIR, file_name), "w", encoding="utf-8") as f:
@@ -201,7 +213,7 @@ def sync_notion_to_blog():
                         <div>{next_post_html}</div>
                     </div>
                     
-                    {cusdis_html}
+                    {giscus_html}
 
                     <div class="d-flex justify-content-center mt-5"><a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html?v={VERSION}">목록으로 돌아가기</a></div>
                 </div></div></div></article>
@@ -249,7 +261,7 @@ def sync_notion_to_blog():
             {nav_bar_html}
             <header class="masthead" style="background-image: url('{BASE_URL}/dist/assets/img/about-bg.jpg')">
                 <div class="container position-relative px-4 px-lg-5"><div class="row justify-content-center">
-                    <div class="col-md-10 col-lg-8"><div class="site-heading"><h1>Archive</h1><span class="subheading">Quantitative Finance Records</span></div></div>
+                    <div class="col-md-10 col-lg-8"><div class="site-heading"><h1>Archive</h1><span class="subheading">새로운 가치를 만들고자 합니다.</span></div></div>
                 </div></div>
             </header>
             <div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
