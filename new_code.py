@@ -1,4 +1,4 @@
-import requests
+mport requests
 import base64
 import os
 import glob
@@ -20,15 +20,15 @@ headers = {
 }
 
 # 설정 정보
-BLOG_TITLE = "Decoupling Lab"
-AUTHOR_NAME = "금산"
-SLOGAN = "산업의 거품을 걷어내고 금융의 실체를 분리해냅니다."
+BLOG_TITLE = "JungleJuice-Lab"
+AUTHOR_NAME = "JungleJuice"
+SLOGAN = "새로움에 대한 추구"
 BASE_URL = "/startbootstrap-clean-blog"
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 
-# 🚩 [댓글 기능 설정] 본인의 GitHub 계정명/저장소명을 입력하세요. 
-# 예: "phb9111/phb9111.github.io"
-REPO_NAME = "phb9111/startbootstrap-clean-blog" 
+# 🚩 [댓글 기능 수정] 방금 Disqus에서 만든 Website Name (Shortname)을 여기에 적어주세요!
+# 예: "decoupling-lab"
+DISQUS_SHORTNAME = "junglejuice-lab" 
 
 def get_base64_image(url):
     try:
@@ -57,7 +57,6 @@ def sync_notion_to_blog():
     res = requests.post(query_url, headers=headers, json=query_data)
     all_posts = res.json().get("results", [])
 
-    # 🚩 [카테고리 수집] 전체 글을 순회하며 존재하는 카테고리 목록을 추출합니다.
     category_set = set()
     for post in all_posts:
         props = post.get("properties", {})
@@ -98,29 +97,16 @@ def sync_notion_to_blog():
         .post-nav {{ display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #ddd; }}
         .post-nav a {{ text-decoration: none; font-weight: bold; color: #0085A1; transition: color 0.2s; max-width: 45%; word-break: keep-all; }}
         .post-nav a:hover {{ color: #00657b; }}
-        
-        /* 카테고리 UI 스타일 */
         .category-container {{ display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; justify-content: center; }}
         .category-btn {{ border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }}
         .category-btn:hover, .category-btn.active {{ background: #0085A1; color: white; }}
-        .utterances {{ max-width: 100%; margin-top: 50px; border-top: 1px solid #ddd; padding-top: 30px; }}
+        
+        /* 디스커스 영역 여백 정리 */
+        #disqus_thread {{ margin-top: 50px; border-top: 1px solid #ddd; padding-top: 30px; }}
     </style>
     '''
     
     footer_html = f'''<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script><script src="{BASE_URL}/dist/js/scripts.js?v={VERSION}"></script>'''
-
-    # 🚩 [댓글 UI] GitHub 이슈 기반 댓글 스크립트 생성
-    utterances_html = f'''
-    <div class="comments-section">
-        <script src="https://utteranc.es/client.js"
-            repo="{REPO_NAME}"
-            issue-term="pathname"
-            theme="github-light"
-            crossorigin="anonymous"
-            async>
-        </script>
-    </div>
-    '''
 
     main_posts_html = ""
     archive_posts_html = ""
@@ -152,7 +138,6 @@ def sync_notion_to_blog():
                     if not first_image_url: first_image_url = b64_img
                     body_html += f'<img src="{b64_img}" style="max-width: 100%; border-radius: 8px; margin: 25px 0;">\n'
 
-        # 🚩 [카테고리 필터링 적용] 태그 속성(data-category) 추가
         post_item_html = f'''
         <div class="post-item" data-category="{category}">
             <div style="flex: 1;">
@@ -184,6 +169,24 @@ def sync_notion_to_blog():
             newer_safe = newer_title.replace(' ', '-').replace('/', '-')
             next_post_html = f'<a href="{BASE_URL}/{POSTS_DIR}/{newer_date}-{newer_safe}.html?v={VERSION}" style="text-align:right;">다음글: →<br>{newer_title}</a>'
 
+        # 🚩 [Disqus 스크립트 주입] 각 글마다 고유한 댓글창 생성
+        disqus_html = f'''
+        <div id="disqus_thread"></div>
+        <script>
+            var disqus_config = function () {{
+                this.page.url = window.location.href.split('?')[0];  
+                this.page.identifier = "{safe_title}"; 
+            }};
+            (function() {{ 
+            var d = document, s = d.createElement('script');
+            s.src = 'https://{DISQUS_SHORTNAME}.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+            }})();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        '''
+
         with open(os.path.join(SAVE_PATH, POSTS_DIR, file_name), "w", encoding="utf-8") as f:
             f.write(f'''
             <!DOCTYPE html>
@@ -205,7 +208,7 @@ def sync_notion_to_blog():
                         <div>{next_post_html}</div>
                     </div>
                     
-                    {utterances_html}
+                    {disqus_html}
 
                     <div class="d-flex justify-content-center mt-5"><a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html?v={VERSION}">목록으로 돌아가기</a></div>
                 </div></div></div></article>
@@ -214,12 +217,10 @@ def sync_notion_to_blog():
             </html>
             ''')
 
-    # 🚩 [카테고리 UI 생성] 전체 버튼 + 추출된 카테고리별 버튼
     category_buttons_html = '<button class="category-btn active" data-target="All">All</button>'
     for cat in sorted(list(category_set)):
         category_buttons_html += f'<button class="category-btn" data-target="{cat}">{cat}</button>'
 
-    # 🚩 [카테고리 필터링 스크립트] 자바스크립트로 부드러운 필터링 구현
     category_js = '''
     <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -228,7 +229,6 @@ def sync_notion_to_blog():
 
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
-                // 활성화 버튼 스타일 변경
                 buttons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
 
@@ -261,11 +261,9 @@ def sync_notion_to_blog():
                 </div></div>
             </header>
             <div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
-                
                 <div class="category-container">
                     {category_buttons_html}
                 </div>
-
                 <div id="post-list">
                     {archive_posts_html}
                 </div>
