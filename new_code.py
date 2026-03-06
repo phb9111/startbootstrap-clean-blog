@@ -27,7 +27,7 @@ BASE_URL = "/startbootstrap-clean-blog"
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 
 # 🚩 [쿠스디스 댓글 설정] 발급받은 data-app-id 값을 여기에 넣어주세요!
-CUSDIS_APP_ID = "여기에_발급받은_APP_ID를_붙여넣으세요"
+CUSDIS_APP_ID = "cb1646c0-c107-4fd9-91d4-02d43e904510"
 
 def get_base64_image(url):
     try:
