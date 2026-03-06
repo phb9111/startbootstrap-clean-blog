@@ -9,9 +9,8 @@ NOTION_TOKEN = os.environ.get('NOTION_TOKEN')
 DATABASE_ID = os.environ.get('NOTION_DATABASE_ID')
 
 SAVE_PATH = "./" 
-POSTS_DIR = "posts" # 🚩 게시글 저장 전용 폴더명
+POSTS_DIR = "posts"
 
-# 🚩 posts 폴더가 없으면 생성합니다.
 os.makedirs(os.path.join(SAVE_PATH, POSTS_DIR), exist_ok=True)
 
 headers = {
@@ -21,10 +20,17 @@ headers = {
 }
 
 # 설정 정보
-BLOG_TITLE = "Hyungbin's LAB"
-AUTHOR_NAME = "Hyungbin"
+BLOG_TITLE = "Jungle Juice Lab"
+AUTHOR_NAME = "정글쥬스"
+SLOGAN = "새로운 가치를 만들고자 합니다."
 BASE_URL = "/startbootstrap-clean-blog"
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
+
+# 🚩 [Giscus 댓글 설정] giscus.app 에서 발급받은 두 개의 ID를 여기에 넣어주세요!
+GISCUS_REPO = "phb9111/startbootstrap-clean-blog"
+GISCUS_REPO_ID = "R_kgDORez65Q"
+GISCUS_CATEGORY = "Announcements" 
+GISCUS_CATEGORY_ID = "DIC_kwDORez65c4C3yba"
 
 def get_base64_image(url):
     try:
@@ -40,7 +46,6 @@ def get_base64_image(url):
 def sync_notion_to_blog():
     if not NOTION_TOKEN or not DATABASE_ID: return
 
-    # 🚩 1. [자동 장부 정리] posts 폴더 안의 기존 HTML 파일들만 싹 비웁니다.
     old_files = glob.glob(os.path.join(SAVE_PATH, POSTS_DIR, "*.html"))
     for f in old_files:
         try: os.remove(f)
@@ -53,6 +58,13 @@ def sync_notion_to_blog():
     }
     res = requests.post(query_url, headers=headers, json=query_data)
     all_posts = res.json().get("results", [])
+
+    category_set = set()
+    for post in all_posts:
+        props = post.get("properties", {})
+        cat_list = props.get("카테고리", {}).get("multi_select", [])
+        if cat_list:
+            category_set.add(cat_list[0].get("name", "Analysis"))
 
     cache_control = '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">'
 
@@ -81,9 +93,18 @@ def sync_notion_to_blog():
     <link href="{BASE_URL}/dist/css/styles.css?v={VERSION}" rel="stylesheet" />
     <style>
         .post-thumbnail {{ width: 120px; height: 80px; object-fit: cover; border-radius: 6px; margin-left: 15px; }}
-        .post-item {{ display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f2f2f2; }}
-        .signature {{ border-top: 1px solid #ddd; margin-top: 60px; padding-top: 20px; color: #777; font-size: 0.9rem; }}
+        .post-item {{ display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f2f2f2; transition: opacity 0.3s ease; }}
+        .signature {{ border-top: 1px solid #ddd; margin-top: 40px; padding-top: 20px; color: #777; font-size: 0.95rem; }}
         .navbar-toggler {{ padding: 0.5rem; font-size: 0.8rem; }}
+        .post-nav {{ display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #ddd; }}
+        .post-nav a {{ text-decoration: none; font-weight: bold; color: #0085A1; transition: color 0.2s; max-width: 45%; word-break: keep-all; }}
+        .post-nav a:hover {{ color: #00657b; }}
+        .category-container {{ display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; justify-content: center; }}
+        .category-btn {{ border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }}
+        .category-btn:hover, .category-btn.active {{ background: #0085A1; color: white; }}
+        
+        /* Giscus UI 래퍼 스타일 */
+        .giscus-container {{ margin-top: 60px; border-top: 1px solid #ddd; padding-top: 40px; width: 100%; }}
     </style>
     '''
     
@@ -119,14 +140,13 @@ def sync_notion_to_blog():
                     if not first_image_url: first_image_url = b64_img
                     body_html += f'<img src="{b64_img}" style="max-width: 100%; border-radius: 8px; margin: 25px 0;">\n'
 
-        # 🚩 링크 경로를 posts/ 폴더 내부로 수정!
         post_item_html = f'''
-        <div class="post-item">
+        <div class="post-item" data-category="{category}">
             <div style="flex: 1;">
                 <a href="{BASE_URL}/{POSTS_DIR}/{file_name}?v={VERSION}" style="text-decoration: none; color: #333;">
                     <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 5px;">{title}</h2>
                 </a>
-                <p style="font-size: 0.8rem; color: #888;">{post_date} | {category}</p>
+                <p style="font-size: 0.8rem; color: #888;">{post_date} | <span style="font-weight:bold; color:#0085A1;">{category}</span></p>
             </div>
             {f'<img src="{first_image_url}" class="post-thumbnail">' if first_image_url else ''}
         </div>
@@ -134,7 +154,44 @@ def sync_notion_to_blog():
         archive_posts_html += post_item_html
         if idx < 5: main_posts_html += post_item_html
 
-        # 개별 페이지 (목록으로 버튼 -> archive.html 연결)
+        prev_post_html = ""
+        next_post_html = ""
+        
+        if idx < len(all_posts) - 1:
+            older_title = all_posts[idx+1].get("properties", {}).get("제목", {}).get("title", [{}])[0].get("plain_text", "Untitled")
+            older_date = all_posts[idx+1].get("properties", {}).get("날짜", {}).get("date", {}).get("start", "")[:10]
+            if not older_date: older_date = datetime.now().strftime("%Y-%m-%d")
+            older_safe = older_title.replace(' ', '-').replace('/', '-')
+            prev_post_html = f'<a href="{BASE_URL}/{POSTS_DIR}/{older_date}-{older_safe}.html?v={VERSION}">← 이전글:<br>{older_title}</a>'
+            
+        if idx > 0:
+            newer_title = all_posts[idx-1].get("properties", {}).get("제목", {}).get("title", [{}])[0].get("plain_text", "Untitled")
+            newer_date = all_posts[idx-1].get("properties", {}).get("날짜", {}).get("date", {}).get("start", "")[:10]
+            if not newer_date: newer_date = datetime.now().strftime("%Y-%m-%d")
+            newer_safe = newer_title.replace(' ', '-').replace('/', '-')
+            next_post_html = f'<a href="{BASE_URL}/{POSTS_DIR}/{newer_date}-{newer_safe}.html?v={VERSION}" style="text-align:right;">다음글: →<br>{newer_title}</a>'
+
+        # 🚩 [Giscus 스크립트 주입] 세련된 디자인과 리액션 기능 추가
+        giscus_html = f'''
+        <div class="giscus-container">
+            <script src="https://giscus.app/client.js"
+                data-repo="{GISCUS_REPO}"
+                data-repo-id="{GISCUS_REPO_ID}"
+                data-category="{GISCUS_CATEGORY}"
+                data-category-id="{GISCUS_CATEGORY_ID}"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="1"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="light"
+                data-lang="ko"
+                crossorigin="anonymous"
+                async>
+            </script>
+        </div>
+        '''
+
         with open(os.path.join(SAVE_PATH, POSTS_DIR, file_name), "w", encoding="utf-8") as f:
             f.write(f'''
             <!DOCTYPE html>
@@ -149,15 +206,52 @@ def sync_notion_to_blog():
                 </header>
                 <article class="mb-4"><div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
                     {body_html}
-                    <div class="signature"><p>작성자 : <b>{AUTHOR_NAME}</b></p></div>
-                    <div class="d-flex justify-content-end mt-5"><a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html?v={VERSION}">← 목록으로 돌아가기</a></div>
+                    <div class="signature"><p>Finance Analyst : <b>{AUTHOR_NAME}</b><br><span style="font-size:0.8rem;">{SLOGAN}</span></p></div>
+                    
+                    <div class="post-nav">
+                        <div>{prev_post_html}</div>
+                        <div>{next_post_html}</div>
+                    </div>
+                    
+                    {giscus_html}
+
+                    <div class="d-flex justify-content-center mt-5"><a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html?v={VERSION}">목록으로 돌아가기</a></div>
                 </div></div></div></article>
                 {footer_html}
             </body>
             </html>
             ''')
 
-    # 아카이브 페이지 생성
+    category_buttons_html = '<button class="category-btn active" data-target="All">All</button>'
+    for cat in sorted(list(category_set)):
+        category_buttons_html += f'<button class="category-btn" data-target="{cat}">{cat}</button>'
+
+    category_js = '''
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const buttons = document.querySelectorAll('.category-btn');
+        const posts = document.querySelectorAll('.post-item');
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const target = btn.getAttribute('data-target');
+
+                posts.forEach(post => {
+                    if (target === 'All' || post.getAttribute('data-category') === target) {
+                        post.style.display = 'flex';
+                    } else {
+                        post.style.display = 'none';
+                    }
+                });
+            });
+        });
+    });
+    </script>
+    '''
+
     with open(os.path.join(SAVE_PATH, "archive.html"), "w", encoding="utf-8") as f:
         f.write(f'''
         <!DOCTYPE html>
@@ -167,16 +261,23 @@ def sync_notion_to_blog():
             {nav_bar_html}
             <header class="masthead" style="background-image: url('{BASE_URL}/dist/assets/img/about-bg.jpg')">
                 <div class="container position-relative px-4 px-lg-5"><div class="row justify-content-center">
-                    <div class="col-md-10 col-lg-8"><div class="site-heading"><h1>Archive</h1><span class="subheading">LAB Records</span></div></div>
+                    <div class="col-md-10 col-lg-8"><div class="site-heading"><h1>Archive</h1><span class="subheading">새로운 가치를 만들고자 합니다.</span></div></div>
                 </div></div>
             </header>
-            <div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">{archive_posts_html}</div></div></div>
+            <div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
+                <div class="category-container">
+                    {category_buttons_html}
+                </div>
+                <div id="post-list">
+                    {archive_posts_html}
+                </div>
+            </div></div></div>
             {footer_html}
+            {category_js}
         </body>
         </html>
         ''')
 
-    # 메인 페이지 생성
     with open(os.path.join(SAVE_PATH, "index.html"), "w", encoding="utf-8") as f:
         f.write(f'''
         <!DOCTYPE html>
@@ -186,14 +287,14 @@ def sync_notion_to_blog():
             {nav_bar_html}
             <header class="masthead" style="background-image: url('{BASE_URL}/dist/assets/img/home-bg.jpg')">
                 <div class="container position-relative px-4 px-lg-5"><div class="row justify-content-center">
-                    <div class="col-md-10 col-lg-8"><div class="site-heading"><h1>{BLOG_TITLE}</h1><span class="subheading">Quantitative Finance Archive</span></div></div>
+                    <div class="col-md-10 col-lg-8"><div class="site-heading"><h1>{BLOG_TITLE}</h1><span class="subheading">{SLOGAN}</span></div></div>
                 </div></div>
             </header>
             <div class="container px-4 px-lg-5"><div class="row justify-content-center">
                 <div class="col-md-10 col-lg-8">
                     {main_posts_html}
                     <div class="d-flex justify-content-end mb-4" style="margin-top: 30px;">
-                        <a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html?v={VERSION}">Older Posts →</a>
+                        <a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html?v={VERSION}">전체 글 보기 →</a>
                     </div>
                 </div>
             </div></div>
