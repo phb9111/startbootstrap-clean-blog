@@ -19,16 +19,15 @@ headers = {
     "Notion-Version": "2022-06-28"
 }
 
-# 설정 정보
-BLOG_TITLE = "JungleJuice-Lab"
-AUTHOR_NAME = "JungleJuice"
-SLOGAN = "새로움에 대한 추구"
+# 설정 정보 (정글쥬스 브랜딩 적용)
+BLOG_TITLE = "Jungle Juice Lab"
+AUTHOR_NAME = "정글쥬스"
+SLOGAN = "자본시장이라는 정글, 기업의 실체를 털어 상큼한 팩트만 짜냅니다."
 BASE_URL = "/startbootstrap-clean-blog"
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 
-# 🚩 [댓글 기능 수정] 방금 Disqus에서 만든 Website Name (Shortname)을 여기에 적어주세요!
-# 예: "decoupling-lab"
-DISQUS_SHORTNAME = "junglejuice-lab" 
+# 🚩 [쿠스디스 댓글 설정] 발급받은 data-app-id 값을 여기에 넣어주세요!
+CUSDIS_APP_ID = "여기에_발급받은_APP_ID를_붙여넣으세요"
 
 def get_base64_image(url):
     try:
@@ -101,8 +100,8 @@ def sync_notion_to_blog():
         .category-btn {{ border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }}
         .category-btn:hover, .category-btn.active {{ background: #0085A1; color: white; }}
         
-        /* 디스커스 영역 여백 정리 */
-        #disqus_thread {{ margin-top: 50px; border-top: 1px solid #ddd; padding-top: 30px; }}
+        /* 쿠스디스 댓글창 여백 정리 */
+        #cusdis_thread {{ margin-top: 50px; border-top: 1px solid #ddd; padding-top: 30px; }}
     </style>
     '''
     
@@ -169,22 +168,16 @@ def sync_notion_to_blog():
             newer_safe = newer_title.replace(' ', '-').replace('/', '-')
             next_post_html = f'<a href="{BASE_URL}/{POSTS_DIR}/{newer_date}-{newer_safe}.html?v={VERSION}" style="text-align:right;">다음글: →<br>{newer_title}</a>'
 
-        # 🚩 [Disqus 스크립트 주입] 각 글마다 고유한 댓글창 생성
-        disqus_html = f'''
-        <div id="disqus_thread"></div>
-        <script>
-            var disqus_config = function () {{
-                this.page.url = window.location.href.split('?')[0];  
-                this.page.identifier = "{safe_title}"; 
-            }};
-            (function() {{ 
-            var d = document, s = d.createElement('script');
-            s.src = 'https://{DISQUS_SHORTNAME}.disqus.com/embed.js';
-            s.setAttribute('data-timestamp', +new Date());
-            (d.head || d.body).appendChild(s);
-            }})();
-        </script>
-        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        # 🚩 [Cusdis 스크립트 주입] 게스트 100% 허용, 초경량 댓글창
+        cusdis_html = f'''
+        <div id="cusdis_thread"
+          data-host="https://cusdis.com"
+          data-app-id="{CUSDIS_APP_ID}"
+          data-page-id="{safe_title}"
+          data-page-url="https://phb9111.github.io{BASE_URL}/{POSTS_DIR}/{file_name}"
+          data-page-title="{title}"
+        ></div>
+        <script async defer src="https://cusdis.com/js/cusdis.es.js"></script>
         '''
 
         with open(os.path.join(SAVE_PATH, POSTS_DIR, file_name), "w", encoding="utf-8") as f:
@@ -208,7 +201,7 @@ def sync_notion_to_blog():
                         <div>{next_post_html}</div>
                     </div>
                     
-                    {disqus_html}
+                    {cusdis_html}
 
                     <div class="d-flex justify-content-center mt-5"><a class="btn btn-primary text-uppercase" href="{BASE_URL}/archive.html?v={VERSION}">목록으로 돌아가기</a></div>
                 </div></div></div></article>
@@ -247,7 +240,6 @@ def sync_notion_to_blog():
     </script>
     '''
 
-    # 아카이브 페이지 생성
     with open(os.path.join(SAVE_PATH, "archive.html"), "w", encoding="utf-8") as f:
         f.write(f'''
         <!DOCTYPE html>
@@ -274,7 +266,6 @@ def sync_notion_to_blog():
         </html>
         ''')
 
-    # 메인 페이지 생성
     with open(os.path.join(SAVE_PATH, "index.html"), "w", encoding="utf-8") as f:
         f.write(f'''
         <!DOCTYPE html>
