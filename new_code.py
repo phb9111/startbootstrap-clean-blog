@@ -182,7 +182,7 @@ def sync_notion_to_blog():
                 rows_url = f"https://api.notion.com/v1/blocks/{table_id}/children"
                 rows_res = requests.get(rows_url, headers=headers).json().get("results", [])
                 
-                body_html += '<div class="table-responsive"><table class="table table-bordered table-hover" style="margin: 25px 0; font-size: 0.95rem; background-color: white;">\n'
+                body_html += '<div class="table-responsive"><table class="table table-hover" style="margin: 10px 0 15px 0; font-size: 0.95rem; border-top: 2px solid #333; border-bottom: 2px solid #333; background-color: white;">\n'
                 
                 for row_idx, row_block in enumerate(rows_res):
                     if row_block["type"] == "table_row":
