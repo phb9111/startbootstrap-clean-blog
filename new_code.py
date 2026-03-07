@@ -27,9 +27,9 @@ BASE_URL = ""
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 
 # 🚩 [검색엔진 SEO 설정]
-GITHUB_DOMAIN = "https://junglejuice.kr"  # 🚩 2. 방금 산 멋진 새 간판 주소를 넣어줍니다.
+GITHUB_DOMAIN = "https://junglejuice.kr"  
 
-# 🚩 [Giscus 댓글 설정] giscus.app 에서 발급받은 두 개의 ID를 여기에 넣어주세요!
+# 🚩 [Giscus 댓글 설정]
 GISCUS_REPO = "phb9111/startbootstrap-clean-blog"
 GISCUS_REPO_ID = "R_kgDORez65Q"
 GISCUS_CATEGORY = "Announcements" 
@@ -90,9 +90,7 @@ def sync_notion_to_blog():
 
     head_html = f'''
     <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-
     <meta name="google-site-verification" content="a0hdbhb-z8TnWjyfn4Ivvf6FTVQ3EVwHftm64LH3k-E" />
-    
     {cache_control}
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
@@ -108,9 +106,11 @@ def sync_notion_to_blog():
         .category-container {{ display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; justify-content: center; }}
         .category-btn {{ border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }}
         .category-btn:hover, .category-btn.active {{ background: #0085A1; color: white; }}
-        
-        /* Giscus UI 래퍼 스타일 */
         .giscus-container {{ margin-top: 60px; border-top: 1px solid #ddd; padding-top: 40px; width: 100%; }}
+        /* 테이블 깔끔하게 만드는 CSS 추가 */
+        .table-responsive {{ overflow-x: auto; -webkit-overflow-scrolling: touch; }}
+        .table th {{ background-color: #f8f9fa; text-align: center; vertical-align: middle; }}
+        .table td {{ vertical-align: middle; }}
     </style>
     '''
     
@@ -135,16 +135,73 @@ def sync_notion_to_blog():
         
         body_html = ""
         first_image_url = None
+        
         for block in blocks:
-            if block["type"] == "paragraph":
-                text = "".join([t.get("plain_text", "") for t in block["paragraph"].get("rich_text", [])])
+            b_type = block["type"]
+            
+            # 1. 문단 파싱 (굵은 글씨 지원 추가)
+            if b_type == "paragraph":
+                text = ""
+                for t in block["paragraph"].get("rich_text", []):
+                    content = t.get("plain_text", "")
+                    if t.get("annotations", {}).get("bold"): content = f"<b>{content}</b>"
+                    text += content
                 if text.strip(): body_html += f"<p>{text}</p>\n"
-            elif block["type"] == "image":
+            
+            # 2. 이미지 파싱
+            elif b_type == "image":
                 img_url = block["image"]["file"]["url"] if "file" in block["image"] else block["image"]["external"]["url"]
                 b64_img = get_base64_image(img_url)
                 if b64_img:
                     if not first_image_url: first_image_url = b64_img
                     body_html += f'<img src="{b64_img}" style="max-width: 100%; border-radius: 8px; margin: 25px 0;">\n'
+
+            # 3. 소제목 (H2, H3) 파싱 추가
+            elif b_type in ["heading_2", "heading_3"]:
+                level = b_type[-1]
+                text = "".join([t.get("plain_text", "") for t in block[b_type].get("rich_text", [])])
+                if text.strip():
+                    margin_top = "35px" if level == "2" else "20px"
+                    body_html += f'<h{level} style="margin-top: {margin_top}; font-weight: 700;">{text}</h{level}>\n'
+
+            # 4. 글머리 기호 (리스트) 파싱 추가
+            elif b_type == "bulleted_list_item":
+                text = ""
+                for t in block[b_type].get("rich_text", []):
+                    content = t.get("plain_text", "")
+                    if t.get("annotations", {}).get("bold"): content = f"<b>{content}</b>"
+                    text += content
+                if text.strip(): body_html += f"<li style='margin-bottom: 8px;'>{text}</li>\n"
+
+            # 5. 🔥 노션 표(Table) 파싱 로직 추가! 🔥
+            elif b_type == "table":
+                table_id = block["id"]
+                has_col_header = block["table"]["has_column_header"]
+                
+                # 표 안의 행(row) 데이터를 한 번 더 API로 불러옵니다.
+                rows_url = f"https://api.notion.com/v1/blocks/{table_id}/children"
+                rows_res = requests.get(rows_url, headers=headers).json().get("results", [])
+                
+                body_html += '<div class="table-responsive"><table class="table table-bordered table-hover" style="margin: 25px 0; font-size: 0.95rem; background-color: white;">\n'
+                
+                for row_idx, row_block in enumerate(rows_res):
+                    if row_block["type"] == "table_row":
+                        body_html += "  <tr>\n"
+                        cells = row_block["table_row"]["cells"]
+                        for cell in cells:
+                            cell_html = ""
+                            for t in cell:
+                                content = t.get("plain_text", "").replace('\n', '<br>')
+                                if t.get("annotations", {}).get("bold"): content = f"<b>{content}</b>"
+                                cell_html += content
+                            
+                            # 첫 번째 행이 헤더(제목) 설정일 경우 <th> 태그 적용
+                            if has_col_header and row_idx == 0:
+                                body_html += f'    <th>{cell_html}</th>\n'
+                            else:
+                                body_html += f'    <td>{cell_html}</td>\n'
+                        body_html += "  </tr>\n"
+                body_html += "</table></div>\n"
 
         post_item_html = f'''
         <div class="post-item" data-category="{category}">
@@ -177,7 +234,6 @@ def sync_notion_to_blog():
             newer_safe = newer_title.replace(' ', '-').replace('/', '-')
             next_post_html = f'<a href="{BASE_URL}/{POSTS_DIR}/{newer_date}-{newer_safe}.html?v={VERSION}" style="text-align:right;">다음글: →<br>{newer_title}</a>'
 
-        # 🚩 [Giscus 스크립트 주입] 세련된 디자인과 리액션 기능 추가
         giscus_html = f'''
         <div class="giscus-container">
             <script src="https://giscus.app/client.js"
