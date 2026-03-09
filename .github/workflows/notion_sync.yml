@@ -28,7 +28,7 @@ jobs:
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-        run: python new_code.py
+        run: python final_code.py
 
       # 🚩 골치 아픈 git 수동 명령어 대신 '자동 커밋 전문 봇'을 고용합니다
       - name: Auto Commit and Push
