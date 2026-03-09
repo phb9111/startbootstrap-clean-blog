@@ -402,6 +402,16 @@ def sync_notion_to_blog():
     sitemap_xml += "\n</urlset>"
     with open(os.path.join(SAVE_PATH, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write(sitemap_xml.strip())
+    
+    # 👇 [추가 4] robots.txt 파일 자동 생성 (여기에 딱 넣으세요!)
+    robots_txt = f'''User-agent: *
+Allow: /
+Sitemap: {GITHUB_DOMAIN}/sitemap.xml
+'''
+    with open(os.path.join(SAVE_PATH, "robots.txt"), "w", encoding="utf-8") as f:
+        f.write(robots_txt)
+    # 👆 여기까지 추가 완료!
+    # ---------------------------------------------------------
 
 if __name__ == "__main__":
     sync_notion_to_blog()
