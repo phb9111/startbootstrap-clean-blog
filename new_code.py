@@ -125,7 +125,23 @@ def sync_notion_to_blog():
 
     main_posts_html = ""
     archive_posts_html = ""
-
+    # 👇 [추가 1] 사이트맵 뼈대 생성 (메인, 아카이브 주소 기본 포함)
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    sitemap_xml = f'''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>{GITHUB_DOMAIN}/</loc>
+        <lastmod>{today_str}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>{GITHUB_DOMAIN}/archive.html</loc>
+        <lastmod>{today_str}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.8</priority>
+    </url>'''
+    
     for idx, post in enumerate(all_posts):
         props = post.get("properties", {})
         title = props.get("제목", {}).get("title", [{}])[0].get("plain_text", "Untitled")
@@ -136,6 +152,15 @@ def sync_notion_to_blog():
 
         safe_title = title.replace(' ', '-').replace('/', '-')
         file_name = f"{post_date}-{safe_title}.html"
+        
+        # 👇 [추가 2] 개별 글 주소를 사이트맵에 누적
+        sitemap_xml += f'''
+    <url>
+        <loc>{GITHUB_DOMAIN}/{POSTS_DIR}/{file_name}</loc>
+        <lastmod>{post_date}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>'''
         
         blocks_url = f"https://api.notion.com/v1/blocks/{post['id']}/children"
         blocks = requests.get(blocks_url, headers=headers).json().get("results", [])
@@ -290,6 +315,11 @@ def sync_notion_to_blog():
             </body>
             </html>
             ''')
+        # 🚩 [추가 3] 사이트맵 파일 생성 (바로 이 위치입니다! 들여쓰기 4칸 주의)
+        sitemap_xml += "\n</urlset>"
+        with open(os.path.join(SAVE_PATH, "sitemap.xml"), "w", encoding="utf-8") as f:
+            f.write(sitemap_xml.strip())
+        # 🚩 여기까지 추가 완료!
 
     category_buttons_html = '<button class="category-btn active" data-target="All">All</button>'
     for cat in sorted(list(category_set)):
