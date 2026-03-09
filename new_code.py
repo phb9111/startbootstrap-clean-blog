@@ -89,6 +89,14 @@ def sync_notion_to_blog():
     '''
 
     head_html = f'''
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2SZ6BX2RQD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-2SZ6BX2RQD');
+    </script>
+    
     <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="google-site-verification" content="a0hdbhb-z8TnWjyfn4Ivvf6FTVQ3EVwHftm64LH3k-E" />
     {cache_control}
@@ -107,7 +115,6 @@ def sync_notion_to_blog():
         .category-btn {{ border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }}
         .category-btn:hover, .category-btn.active {{ background: #0085A1; color: white; }}
         .giscus-container {{ margin-top: 60px; border-top: 1px solid #ddd; padding-top: 40px; width: 100%; }}
-        /* 테이블 깔끔하게 만드는 CSS 추가 */
         .table-responsive {{ overflow-x: auto; -webkit-overflow-scrolling: touch; }}
         .table th {{ background-color: #f8f9fa; text-align: center; vertical-align: middle; }}
         .table td {{ vertical-align: middle; }}
