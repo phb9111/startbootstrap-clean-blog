@@ -2,15 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
         <loc>https://junglejuice.kr/</loc>
-        <lastmod>2026-03-30</lastmod>
+        <lastmod>2026-03-31</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
         <loc>https://junglejuice.kr/archive.html</loc>
-        <lastmod>2026-03-30</lastmod>
+        <lastmod>2026-03-31</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://junglejuice.kr/posts/2026-03-31-[일상]-수영신청-성공---4월시작.html</loc>
+        <lastmod>2026-03-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://junglejuice.kr/posts/2026-03-28-[운동-건강]-3-28-걷뛰.html</loc>
+        <lastmod>2026-03-28</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
     </url>
     <url>
         <loc>https://junglejuice.kr/posts/2026-03-09-[부동산-팩트체크]-미국-보유세가-한국보다-5배-비싸다,-현금흐름(DCF)-역산의-충격적-결과.html</loc>
@@ -33,6 +45,12 @@
     <url>
         <loc>https://junglejuice.kr/posts/2026-03-07-[기업-밸류에이션-분석]-넷마블-목표주가-8.5만-원,-구글-수수료-인하-리포트의-함정.html</loc>
         <lastmod>2026-03-07</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://junglejuice.kr/posts/2026-03-05-꼬미사진.html</loc>
+        <lastmod>2026-03-05</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
