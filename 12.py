@@ -20,9 +20,9 @@ headers = {
 }
 
 # 설정 정보
-BLOG_TITLE = "Jungle Juice Lab"
-AUTHOR_NAME = "정글쥬스"
-SLOGAN = "새로운 가치를 만들고자 합니다."
+BLOG_TITLE = "Hyungbin's Lab"
+AUTHOR_NAME = "Hyungbin"
+SLOGAN = "즐거운 우리집 행복한 우리집"
 BASE_URL = "/startbootstrap-clean-blog"
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 
