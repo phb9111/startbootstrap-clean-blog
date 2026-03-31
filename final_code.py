@@ -20,9 +20,9 @@ headers = {
 }
 
 # 설정 정보
-BLOG_TITLE = "Jungle Juice Lab"
-AUTHOR_NAME = "정글쥬스"
-SLOGAN = "새로운 가치를 만들고자 합니다."
+BLOG_TITLE = "Hyungbin's Lab"
+AUTHOR_NAME = "Hyungbin"
+SLOGAN = "Input & Output : 매일의 기록, 확실한 ROI"
 BASE_URL = ""
 VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -356,7 +356,7 @@ def sync_notion_to_blog():
             {nav_bar_html}
             <header class="masthead" style="background-image: url('{BASE_URL}/dist/assets/img/about-bg.jpg')">
                 <div class="container position-relative px-4 px-lg-5"><div class="row justify-content-center">
-                    <div class="col-md-10 col-lg-8"><div class="site-heading"><h1>Archive</h1><span class="subheading">새로운 가치를 만들고자 합니다.</span></div></div>
+                    <div class="col-md-10 col-lg-8"><div class="site-heading"><h1>Archive</h1><span class="subheading">Input & Output : 매일의 기록, 확실한 ROI</span></div></div>
                 </div></div>
             </header>
             <div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
