@@ -1,0 +1,155 @@
+
+            <!DOCTYPE html>
+            <html lang="ko">
+            <head><title>[주식 자동화] 퀀트투자의 시작 - Hyungbin's Lab</title>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2SZ6BX2RQD"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-2SZ6BX2RQD');
+    </script>
+    
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="google-site-verification" content="a0hdbhb-z8TnWjyfn4Ivvf6FTVQ3EVwHftm64LH3k-E" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+    <link href="/dist/css/styles.css?v=20260420220225" rel="stylesheet" />
+    <style>
+        .post-thumbnail { width: 120px; height: 80px; object-fit: cover; border-radius: 6px; margin-left: 15px; }
+        .post-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f2f2f2; transition: opacity 0.3s ease; }
+        .signature { border-top: 1px solid #ddd; margin-top: 40px; padding-top: 20px; color: #777; font-size: 0.95rem; }
+        .navbar-toggler { padding: 0.5rem; font-size: 0.8rem; }
+        .post-nav { display: flex; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #ddd; }
+        .post-nav a { text-decoration: none; font-weight: bold; color: #0085A1; transition: color 0.2s; max-width: 45%; word-break: keep-all; }
+        .post-nav a:hover { color: #00657b; }
+        .category-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; justify-content: center; }
+        .category-btn { border: 1px solid #0085A1; background: transparent; color: #0085A1; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+        .category-btn:hover, .category-btn.active { background: #0085A1; color: white; }
+        .giscus-container { margin-top: 60px; border-top: 1px solid #ddd; padding-top: 40px; width: 100%; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table th { background-color: #f8f9fa; text-align: center; vertical-align: middle; }
+        .table td { vertical-align: middle; }
+    </style>
+    </head>
+            <body>
+                
+    <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="/index.html?v=20260420220225">Hyungbin's Lab</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive">
+                Menu <i class="fas fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/index.html?v=20260420220225">Home</a></li>
+                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="/archive.html?v=20260420220225">Archive</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+                <header class="masthead" style="background-image: url('/dist/assets/img/post-bg.jpg')">
+                    <div class="container position-relative px-4 px-lg-5"><div class="row justify-content-center">
+                        <div class="col-md-10 col-lg-8"><div class="post-heading"><h1>[주식 자동화] 퀀트투자의 시작</h1><span class="meta">Posted by Hyungbin on 2026-04-21</span></div></div>
+                    </div></div>
+                </header>
+                <article class="mb-4"><div class="container px-4 px-lg-5"><div class="row justify-content-center"><div class="col-md-10 col-lg-8">
+                    <h2 style="margin-top: 35px; font-weight: 700;">0. 왜 이 프로젝트가 시작되었는지? (기획 배경)</h2>
+<p>투자를 하다 보면 가장 큰 적은 결국 '내 마음'입니다. 시장이 떨어지면 무서워서 팔고 싶고, 오르면 욕심이 나서 더 사고 싶어지죠. 저는 회계 담당자로서 숫자는 거짓말을 하지 않는다는 것을 압니다.
+그래서 **"내 감정을 100% 배제하고, 철저히 데이터(거시경제 지표, 주가 추세)에만 기반해 기계처럼 매매해 주는 비서가 있다면 어떨까?"**라는 생각에서 출발했습니다. 잠든 새벽에도 알아서 미국 주식을 분석하고 사고팔며, 아침에는 장부까지 깔끔하게 정리해 주는 나만의 '디지털 CFO(최고재무책임자)'를 만드는 것이 이 프로젝트의 목표였습니다.</p>
+<h2 style="margin-top: 35px; font-weight: 700;">1. 어떻게 구현하고자 했는지? (설계도)</h2>
+<p>봇을 만들기 위해 세 가지 핵심 부품을 조립했습니다.</p>
+<li style='margin-bottom: 8px;'><b>🧠 두뇌 (Yahoo Finance + Python):</b> 야후 파이낸스에서 나스닥(QQQ), 하이일드 채권(HYG), 미국 연준 데이터(FRED)를 실시간으로 가져와 지금이 '공격할 때(TQQQ)'인지 '방어할 때(QQQ)'인지 판단합니다.</li>
+<li style='margin-bottom: 8px;'><b>💪 팔과 다리 (한국투자증권 API):</b> 두뇌가 결정을 내리면 증권사 서버에 직접 접속해, 내 계좌의 돈을 확인하고 주식을 사고파는 실제 행동을 합니다.</li>
+<li style='margin-bottom: 8px;'><b>🗣️ 입과 귀 (Telegram):</b> 매일 아침 수익률 보고서를 내 폰으로 보내주고, 내가 카톡처럼 명령어를 치면 즉각 대답해 주는 소통 창구입니다.</li>
+<h2 style="margin-top: 35px; font-weight: 700;">2. 어떤 문제점이 있어왔는지? (The Quant's Dilemma)</h2>
+<p>단순히 "서버를 어떻게 켤 것인가" 같은 기술적인 문제는 부차적이었습니다. 진짜 고통스러운 고민은 **"과연 TQQQ/QQQ 스위칭 전략이 현실에서 통하는가?"**를 백테스트하며 마주한 전략적 한계들이었습니다.</p>
+<h2 style="margin-top: 35px; font-weight: 700;">3. 어떻게 극복하였는지? (The Strategy Breakthrough)</h2>
+<p>수십 번의 백테스트 로직 수정과 치열한 논의 끝에, 우리는 시장의 노이즈를 걸러낼 **4중 필터(게임의 룰)**를 확정하며 문제를 극복했습니다.</p>
+<h2 style="margin-top: 35px; font-weight: 700;">4. 그래서 최종 코드가 무엇인지?</h2>
+<p>(상단에 매니저님이 적어두신 Python 코드 전체가 바로 이 섹션에 들어갑니다. 총 300줄이 넘는 피와 땀의 결정체입니다!)</p>
+<p>import telebot</p>
+<p>import yfinance as yf</p>
+<p>import pandas as pd</p>
+<p>import numpy as np</p>
+<p>import json</p>
+<p>import time</p>
+<p>import threading</p>
+<p>import os</p>
+<p>import requests</p>
+<p>from dotenv import load_dotenv</p>
+<p>import pandas_datareader.data as web</p>
+<p>from datetime import datetime, timedelta</p>
+<p>load_dotenv()</p>
+<p>KIS_APPKEY = os.getenv('KIS_APPKEY')</p>
+<p>KIS_SECRET = os.getenv('KIS_SECRET')</p>
+<p>KIS_CANO = os.getenv('KIS_CANO')</p>
+<p>KIS_ACNT_PRDT_CD = os.getenv('KIS_ACNT_PRDT_CD')</p>
+<p>KIS_URL = os.getenv('KIS_URL')</p>
+<p>BOT_TOKEN = ‘token_code'</p>
+<p>CHAT_ID = 'chat_code'</p>
+<p>bot = telebot.TeleBot(BOT_TOKEN)</p>
+<p>LEDGER_FILE = 'ledger_config.json'</p>
+<p>HISTORY_FILE = 'trade_history.csv'</p>
+<p>EST_FEE_RATE = 0.0025</p>
+<p>HYG_THRESHOLD = -1.0</p>
+<p>HYG_DAYS = 3</p>
+<p>FRED_THRESHOLD = 5.5</p>
+<p>SWITCH_CONFIRM_DAYS = 3</p>
+<p>def get_access_token():</p>
+<p>def get_current_price_kis(ticker, token):</p>
+<p>def get_kis_krw_balance(token):</p>
+<p>def get_kis_balance(token):</p>
+<p>def execute_order_kis(ticker, qty, price, token, side="buy"):</p>
+<p>def auto_trade_logic(target_ticker, st):</p>
+<p>def load_ledger():</p>
+<p>def save_ledger(data):</p>
+<p>def log_trade(acc_type, trade_type, ticker, qty, price, amount, fee, date_str=None):</p>
+<p>def get_historical_price(ticker, target_date):</p>
+<p>def get_strategy_state():</p>
+<p>def get_account_summary():</p>
+<p>def generate_strategy_report():</p>
+<p>@bot.message_handler(commands=['start', 'help'])</p>
+<p>def send_welcome(message): bot.reply_to(message, "🤖 <b>CFO v10.4 실전모드 (원화 예수금 완벽연동)</b>\n/status /strategy /now", parse_mode='HTML')</p>
+<p>@bot.message_handler(commands=['now'])</p>
+<p>def handle_now(message):</p>
+<p>@bot.message_handler(commands=['status'])</p>
+<p>def handle_status(message):</p>
+<p>@bot.message_handler(commands=['strategy'])</p>
+<p>def handle_strategy(message):</p>
+
+                    <div class="signature"><p>Finance Analyst : <b>Hyungbin</b><br><span style="font-size:0.8rem;">Input & Output : 매일의 기록, 확실한 ROI</span></p></div>
+                    
+                    <div class="post-nav">
+                        <div><a href="/posts/2026-03-31-[일상]-수영신청-성공---4월시작.html?v=20260420220225">← 이전글:<br>[일상] 수영신청 성공 / 4월시작</a></div>
+                        <div></div>
+                    </div>
+                    
+                    
+        <div class="giscus-container">
+            <script src="https://giscus.app/client.js"
+                data-repo="phb9111/startbootstrap-clean-blog"
+                data-repo-id="R_kgDORez65Q"
+                data-category="Announcements"
+                data-category-id="DIC_kwDORez65c4C3yba"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="1"
+                data-emit-metadata="0"
+                data-input-position="bottom"
+                data-theme="light"
+                data-lang="ko"
+                crossorigin="anonymous"
+                async>
+            </script>
+        </div>
+        
+
+                    <div class="d-flex justify-content-center mt-5"><a class="btn btn-primary text-uppercase" href="/archive.html?v=20260420220225">목록으로 돌아가기</a></div>
+                </div></div></div></article>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script><script src="/dist/js/scripts.js?v=20260420220225"></script>
+            </body>
+            </html>
+            
